@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   Plus,
   Rotate3D,
@@ -166,6 +166,8 @@ export default function FloorPlanDesigner() {
     gridOffsetX,
     gridOffsetY,
     floorPlanDimensions,
+    currentProjectId,
+    saveCurrentProject,
   ]);
 
   useEffect(() => {
@@ -179,6 +181,7 @@ export default function FloorPlanDesigner() {
     floorPlanDimensions,
     gridOffsetX,
     gridOffsetY,
+    drawCanvas,
   ]);
 
   const saveCurrentProject = () => {

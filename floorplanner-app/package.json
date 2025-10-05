@@ -14,12 +14,7 @@
     "lucide-react": "^0.544.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
-    "tailwindcss": "^4.1.14",
-    "uuid": "^13.0.0",
-    "@mui/material": "^5.16.4",
-    "@emotion/react": "^11.11.4",
-    "@emotion/styled": "^11.11.5",
-    "html2canvas": "^1.4.1"
+    "tailwindcss": "^4.1.14"
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",
