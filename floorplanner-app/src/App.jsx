@@ -1,34 +1,49 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Upload, Plus, Rotate3D, Trash2, Grid3x3, Settings, FolderOpen, PlusCircle, X, ZoomIn, ZoomOut, Maximize2 } from 'lucide-react';
-import './App.css'
+import React, { useState, useRef, useEffect } from "react";
+import {
+  Plus,
+  Rotate3D,
+  Trash2,
+  Grid3x3,
+  Settings,
+  FolderOpen,
+  PlusCircle,
+  X,
+  ZoomIn,
+  ZoomOut,
+  Maximize2,
+  ArrowLeft,
+} from "lucide-react";
 
 const DEFAULT_FURNITURE = [
-  { name: 'Single Bed', width: 1.0, depth: 2.0 },
-  { name: 'Double Bed', width: 1.4, depth: 2.0 },
-  { name: 'Sofa 2-Seater', width: 1.8, depth: 0.9 },
-  { name: 'Sofa 3-Seater', width: 2.2, depth: 0.9 },
-  { name: 'Dining Table 4p', width: 1.2, depth: 0.8 },
-  { name: 'Dining Table 6p', width: 1.8, depth: 0.9 },
-  { name: 'Dining Chair', width: 0.5, depth: 0.5 },
-  { name: 'Desk Chair', width: 0.6, depth: 0.6 },
-  { name: 'Coffee Table', width: 1.2, depth: 0.6 },
-  { name: 'Sq Coffee Table', width: 0.9, depth: 0.9 },
-  { name: 'Desk', width: 1.4, depth: 0.7 },
-  { name: 'Armchair', width: 0.9, depth: 0.9 },
-  { name: 'Wardrobe', width: 1.2, depth: 0.6 },
-  { name: 'Chest of Drawers', width: 0.9, depth: 0.5 },
-  { name: 'Bedside Cabinet', width: 0.5, depth: 0.4 },
-  { name: 'Thin Shelf', width: 1.0, depth: 0.25 },
-  { name: 'Shelf', width: 1.0, depth: 0.4 },
-  { name: 'Bookshelf', width: 0.8, depth: 0.3 },
-  { name: 'TV Stand', width: 1.5, depth: 0.4 },
+  { name: "Single Bed", width: 1.0, depth: 2.0 },
+  { name: "Double Bed", width: 1.4, depth: 2.0 },
+  { name: "Sofa 2-Seater", width: 1.8, depth: 0.9 },
+  { name: "Sofa 3-Seater", width: 2.2, depth: 0.9 },
+  { name: "Dining Table 4p", width: 1.2, depth: 0.8 },
+  { name: "Dining Table 6p", width: 1.8, depth: 0.9 },
+  { name: "Dining Chair", width: 0.5, depth: 0.5 },
+  { name: "Desk Chair", width: 0.6, depth: 0.6 },
+  { name: "Coffee Table", width: 1.2, depth: 0.6 },
+  { name: "Sq Coffee Table", width: 0.9, depth: 0.9 },
+  { name: "Desk", width: 1.4, depth: 0.7 },
+  { name: "Armchair", width: 0.9, depth: 0.9 },
+  { name: "Wardrobe", width: 1.2, depth: 0.6 },
+  { name: "Chest of Drawers", width: 0.9, depth: 0.5 },
+  { name: "Bedside Cabinet", width: 0.5, depth: 0.4 },
+  { name: "Thin Shelf", width: 1.0, depth: 0.25 },
+  { name: "Shelf", width: 1.0, depth: 0.4 },
+  { name: "Bookshelf", width: 0.8, depth: 0.3 },
+  { name: "TV Stand", width: 1.5, depth: 0.4 },
 ];
 
 export default function FloorPlanDesigner() {
   const [projects, setProjects] = useState([]);
   const [currentProjectId, setCurrentProjectId] = useState(null);
   const [floorPlan, setFloorPlan] = useState(null);
-  const [floorPlanDimensions, setFloorPlanDimensions] = useState({ width: 1200, height: 800 });
+  const [floorPlanDimensions, setFloorPlanDimensions] = useState({
+    width: 1200,
+    height: 800,
+  });
   const [gridSize, setGridSize] = useState(50);
   const [metersPerSquare, setMetersPerSquare] = useState(1);
   const [showGrid, setShowGrid] = useState(true);
@@ -40,57 +55,93 @@ export default function FloorPlanDesigner() {
   const [selectedItem, setSelectedItem] = useState(null);
   const [isDraggingItem, setIsDraggingItem] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  const [customForm, setCustomForm] = useState({ name: '', width: '', depth: '', image: '', rotation: 0 });
-  const [activeTab, setActiveTab] = useState('projects');
-  const [newProjectName, setNewProjectName] = useState('');
+  const [customForm, setCustomForm] = useState({
+    name: "",
+    width: "",
+    depth: "",
+    image: "",
+    rotation: 0,
+  });
+  const [activeTab, setActiveTab] = useState("projects");
+  const [newProjectName, setNewProjectName] = useState("");
   const [zoom, setZoom] = useState(1);
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
   const [panStart, setPanStart] = useState({ x: 0, y: 0 });
   const [isSpacePressed, setIsSpacePressed] = useState(false);
-  
+  const [projectView, setProjectView] = useState("list");
+  const [furnitureView, setFurnitureView] = useState("list");
+
   const canvasRef = useRef(null);
   const fileInputRef = useRef(null);
   const containerRef = useRef(null);
   const canvasContainerRef = useRef(null);
 
+  const unloadProject = () => {
+    setCurrentProjectId(null);
+    setPlacedItems([]);
+    setGridSize(50);
+    setMetersPerSquare(1);
+    setShowGrid(true);
+    setGridOffsetX(0);
+    setGridOffsetY(0);
+    setFloorPlanDimensions({ width: 1200, height: 800 });
+    setSelectedItem(null);
+    setFloorPlan(null);
+    setZoom(1);
+    setPanOffset({ x: 0, y: 0 });
+    setIsPanning(false);
+    setPanStart({ x: 0, y: 0 });
+    setIsDraggingItem(false);
+    setDraggedItem(null);
+    setDragOffset({ x: 0, y: 0 });
+    setCustomForm({
+      name: "",
+      width: "",
+      depth: "",
+      image: "",
+      rotation: 0,
+    });
+    setActiveTab("projects");
+    setNewProjectName("");
+    setProjectView("list");
+    setFurnitureView("list");
+  };
+
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.code === 'Space' && !e.repeat) {
+      if (e.code === "Space" && !e.repeat) {
         e.preventDefault();
         setIsSpacePressed(true);
       }
     };
 
     const handleKeyUp = (e) => {
-      if (e.code === 'Space') {
+      if (e.code === "Space") {
         e.preventDefault();
         setIsSpacePressed(false);
         setIsPanning(false);
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
 
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
     };
   }, []);
 
   useEffect(() => {
-    const savedProjects = localStorage.getItem('floorPlanProjects');
-    const savedFurniture = localStorage.getItem('customFurniture');
-    
+    const savedProjects = localStorage.getItem("floorPlanProjects");
+    const savedFurniture = localStorage.getItem("customFurniture");
+
     if (savedProjects) {
       const parsedProjects = JSON.parse(savedProjects);
       setProjects(parsedProjects);
-      if (parsedProjects.length > 0) {
-        loadProject(parsedProjects[0].id, parsedProjects);
-      }
     }
-    
+
     if (savedFurniture) {
       const customFurniture = JSON.parse(savedFurniture);
       setFurniture([...DEFAULT_FURNITURE, ...customFurniture]);
@@ -99,7 +150,7 @@ export default function FloorPlanDesigner() {
 
   useEffect(() => {
     if (projects.length > 0) {
-      localStorage.setItem('floorPlanProjects', JSON.stringify(projects));
+      localStorage.setItem("floorPlanProjects", JSON.stringify(projects));
     }
   }, [projects]);
 
@@ -107,36 +158,93 @@ export default function FloorPlanDesigner() {
     if (currentProjectId) {
       saveCurrentProject();
     }
-  }, [placedItems, gridSize, metersPerSquare, showGrid, gridOffsetX, gridOffsetY, floorPlanDimensions]);
+  }, [
+    placedItems,
+    gridSize,
+    metersPerSquare,
+    showGrid,
+    gridOffsetX,
+    gridOffsetY,
+    floorPlanDimensions,
+  ]);
 
   useEffect(() => {
     drawCanvas();
-  }, [floorPlan, gridSize, showGrid, placedItems, selectedItem, floorPlanDimensions, gridOffsetX, gridOffsetY]);
+  }, [
+    floorPlan,
+    gridSize,
+    showGrid,
+    placedItems,
+    selectedItem,
+    floorPlanDimensions,
+    gridOffsetX,
+    gridOffsetY,
+  ]);
 
   const saveCurrentProject = () => {
     if (!currentProjectId) return;
 
-    setProjects(prev => prev.map(p => {
-      if (p.id === currentProjectId) {
-        return {
-          ...p,
-          placedItems,
-          gridSize,
-          metersPerSquare,
-          showGrid,
-          gridOffsetX,
-          gridOffsetY,
-          floorPlanDimensions,
-          lastModified: new Date().toISOString()
-        };
-      }
-      return p;
-    }));
+    setProjects((prev) =>
+      prev.map((p) => {
+        if (p.id === currentProjectId) {
+          return {
+            ...p,
+            placedItems,
+            gridSize,
+            metersPerSquare,
+            showGrid,
+            gridOffsetX,
+            gridOffsetY,
+            floorPlanDimensions,
+            lastModified: new Date().toISOString(),
+          };
+        }
+        return p;
+      })
+    );
+  };
+
+  const renameProject = (newName) => {
+    if (!newName.trim()) return;
+    if (
+      projects.some(
+        (p) =>
+          p.name.toLowerCase() === newName.toLowerCase() &&
+          p.id !== currentProjectId
+      )
+    ) {
+      alert("Another project already has this name");
+      return;
+    }
+    setProjects((prev) =>
+      prev.map((p) =>
+        p.id === currentProjectId
+          ? { ...p, name: newName, lastModified: new Date().toISOString() }
+          : p
+      )
+    );
+  };
+
+  const exportPNG = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const link = document.createElement("a");
+    link.download = `${currentProject?.name || "floorplan"}.png`;
+    link.href = canvas.toDataURL("image/png");
+    link.click();
   };
 
   const createNewProject = () => {
     if (!newProjectName.trim()) {
-      alert('Please enter a project name');
+      alert("Please enter a project name");
+      return;
+    }
+    if (
+      projects.some(
+        (p) => p.name.toLowerCase() === newProjectName.trim().toLowerCase()
+      )
+    ) {
+      alert("A project with this name already exists");
       return;
     }
 
@@ -152,13 +260,13 @@ export default function FloorPlanDesigner() {
       gridOffsetY: 0,
       floorPlanDimensions: { width: 1200, height: 800 },
       created: new Date().toISOString(),
-      lastModified: new Date().toISOString()
+      lastModified: new Date().toISOString(),
     };
 
     setProjects([...projects, newProject]);
     setCurrentProjectId(newProject.id);
-    setNewProjectName('');
-    
+    setNewProjectName("");
+
     setFloorPlan(null);
     setPlacedItems([]);
     setGridSize(50);
@@ -171,7 +279,7 @@ export default function FloorPlanDesigner() {
   };
 
   const loadProject = (projectId, projectsList = projects) => {
-    const project = projectsList.find(p => p.id === projectId);
+    const project = projectsList.find((p) => p.id === projectId);
     if (!project) return;
 
     setCurrentProjectId(projectId);
@@ -181,7 +289,9 @@ export default function FloorPlanDesigner() {
     setShowGrid(project.showGrid !== undefined ? project.showGrid : true);
     setGridOffsetX(project.gridOffsetX || 0);
     setGridOffsetY(project.gridOffsetY || 0);
-    setFloorPlanDimensions(project.floorPlanDimensions || { width: 1200, height: 800 });
+    setFloorPlanDimensions(
+      project.floorPlanDimensions || { width: 1200, height: 800 }
+    );
     setSelectedItem(null);
 
     if (project.floorPlanImage) {
@@ -197,9 +307,9 @@ export default function FloorPlanDesigner() {
 
   const deleteProject = (e, projectId) => {
     e.stopPropagation();
-    if (!confirm('Are you sure you want to delete this project?')) return;
+    if (!confirm("Are you sure you want to delete this project?")) return;
 
-    const updatedProjects = projects.filter(p => p.id !== projectId);
+    const updatedProjects = projects.filter((p) => p.id !== projectId);
     setProjects(updatedProjects);
 
     if (currentProjectId === projectId) {
@@ -213,9 +323,12 @@ export default function FloorPlanDesigner() {
     }
 
     if (updatedProjects.length === 0) {
-      localStorage.removeItem('floorPlanProjects');
+      localStorage.removeItem("floorPlanProjects");
     } else {
-      localStorage.setItem('floorPlanProjects', JSON.stringify(updatedProjects));
+      localStorage.setItem(
+        "floorPlanProjects",
+        JSON.stringify(updatedProjects)
+      );
     }
   };
 
@@ -228,36 +341,41 @@ export default function FloorPlanDesigner() {
         img.onload = () => {
           const maxWidth = window.innerWidth * 0.6;
           const maxHeight = window.innerHeight - 100;
-          
+
           let width = img.width;
           let height = img.height;
-          
+
           if (width > maxWidth) {
             height = (height * maxWidth) / width;
             width = maxWidth;
           }
-          
+
           if (height > maxHeight) {
             width = (width * maxHeight) / height;
             height = maxHeight;
           }
-          
-          const newDimensions = { width: Math.round(width), height: Math.round(height) };
+
+          const newDimensions = {
+            width: Math.round(width),
+            height: Math.round(height),
+          };
           setFloorPlanDimensions(newDimensions);
           setFloorPlan(img);
 
           if (currentProjectId) {
-            setProjects(prev => prev.map(p => {
-              if (p.id === currentProjectId) {
-                return {
-                  ...p,
-                  floorPlanImage: event.target.result,
-                  floorPlanDimensions: newDimensions,
-                  lastModified: new Date().toISOString()
-                };
-              }
-              return p;
-            }));
+            setProjects((prev) =>
+              prev.map((p) => {
+                if (p.id === currentProjectId) {
+                  return {
+                    ...p,
+                    floorPlanImage: event.target.result,
+                    floorPlanDimensions: newDimensions,
+                    lastModified: new Date().toISOString(),
+                  };
+                }
+                return p;
+              })
+            );
           }
         };
         img.src = event.target.result;
@@ -269,23 +387,27 @@ export default function FloorPlanDesigner() {
   const drawCanvas = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    
-    const ctx = canvas.getContext('2d');
+
+    const ctx = canvas.getContext("2d");
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     if (floorPlan) {
       ctx.drawImage(floorPlan, 0, 0, canvas.width, canvas.height);
     } else {
-      ctx.fillStyle = '#f8f9fa';
+      ctx.fillStyle = "#f8f9fa";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = '#adb5bd';
-      ctx.font = '20px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText('Upload a floor plan to get started', canvas.width / 2, canvas.height / 2);
+      ctx.fillStyle = "#adb5bd";
+      ctx.font = "20px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(
+        "Upload a floor plan to get started",
+        canvas.width / 2,
+        canvas.height / 2
+      );
     }
 
     if (showGrid && gridSize > 0) {
-      ctx.strokeStyle = 'rgba(255, 0, 0, 0.3)';
+      ctx.strokeStyle = "rgba(255, 0, 0, 0.3)";
       ctx.lineWidth = 1;
       for (let x = gridOffsetX; x <= canvas.width; x += gridSize) {
         ctx.beginPath();
@@ -320,28 +442,39 @@ export default function FloorPlanDesigner() {
 
       ctx.save();
       ctx.translate(item.x, item.y);
-      ctx.rotate((item.rotation || 0) * Math.PI / 180);
+      ctx.rotate(((item.rotation || 0) * Math.PI) / 180);
 
-      if (item.image && item.imageObj && item.imageObj.complete && item.imageObj.naturalWidth > 0) {
-        ctx.drawImage(item.imageObj, -widthPx/2, -depthPx/2, widthPx, depthPx);
+      if (
+        item.image &&
+        item.imageObj &&
+        item.imageObj.complete &&
+        item.imageObj.naturalWidth > 0
+      ) {
+        ctx.drawImage(
+          item.imageObj,
+          -widthPx / 2,
+          -depthPx / 2,
+          widthPx,
+          depthPx
+        );
       } else {
-        ctx.fillStyle = 'rgba(100, 150, 200, 0.3)';
-        ctx.fillRect(-widthPx/2, -depthPx/2, widthPx, depthPx);
-        ctx.strokeStyle = 'rgba(70, 120, 170, 0.8)';
+        ctx.fillStyle = "rgba(100, 150, 200, 0.3)";
+        ctx.fillRect(-widthPx / 2, -depthPx / 2, widthPx, depthPx);
+        ctx.strokeStyle = "rgba(70, 120, 170, 0.8)";
         ctx.lineWidth = 2;
-        ctx.strokeRect(-widthPx/2, -depthPx/2, widthPx, depthPx);
-        
-        ctx.fillStyle = '#334155';
+        ctx.strokeRect(-widthPx / 2, -depthPx / 2, widthPx, depthPx);
+
+        ctx.fillStyle = "#334155";
         ctx.font = `${Math.min(widthPx, depthPx) / 5}px sans-serif`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
         ctx.fillText(item.name, 0, 0);
       }
 
       if (selectedItem === idx) {
-        ctx.strokeStyle = '#4A90E2';
+        ctx.strokeStyle = "#4A90E2";
         ctx.lineWidth = 3;
-        ctx.strokeRect(-widthPx/2, -depthPx/2, widthPx, depthPx);
+        ctx.strokeRect(-widthPx / 2, -depthPx / 2, widthPx, depthPx);
       }
 
       ctx.restore();
@@ -349,28 +482,28 @@ export default function FloorPlanDesigner() {
   };
 
   const drawFurniturePreview = (item) => {
-    const canvas = document.createElement('canvas');
+    const canvas = document.createElement("canvas");
     const size = 100;
     canvas.width = size;
     canvas.height = size;
-    const ctx = canvas.getContext('2d');
-    
+    const ctx = canvas.getContext("2d");
+
     const scale = 0.8;
     const w = size * scale * (item.width / Math.max(item.width, item.depth));
     const h = size * scale * (item.depth / Math.max(item.width, item.depth));
-    
-    ctx.fillStyle = 'rgba(100, 150, 200, 0.3)';
+
+    ctx.fillStyle = "rgba(100, 150, 200, 0.3)";
     ctx.fillRect((size - w) / 2, (size - h) / 2, w, h);
-    ctx.strokeStyle = 'rgba(70, 120, 170, 0.8)';
+    ctx.strokeStyle = "rgba(70, 120, 170, 0.8)";
     ctx.lineWidth = 2;
     ctx.strokeRect((size - w) / 2, (size - h) / 2, w, h);
-    
-    ctx.fillStyle = '#334155';
+
+    ctx.fillStyle = "#334155";
     ctx.font = `${Math.min(w, h) / 4}px sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
     ctx.fillText(item.name, size / 2, size / 2);
-    
+
     return canvas.toDataURL();
   };
 
@@ -381,14 +514,14 @@ export default function FloorPlanDesigner() {
       const item = placedItems[i];
       const widthPx = item.width * pixelsPerMeter;
       const depthPx = item.depth * pixelsPerMeter;
-      
+
       const dx = x - item.x;
       const dy = y - item.y;
-      const angle = -(item.rotation || 0) * Math.PI / 180;
+      const angle = (-(item.rotation || 0) * Math.PI) / 180;
       const rotX = dx * Math.cos(angle) - dy * Math.sin(angle);
       const rotY = dx * Math.sin(angle) + dy * Math.cos(angle);
 
-      if (Math.abs(rotX) <= widthPx/2 && Math.abs(rotY) <= depthPx/2) {
+      if (Math.abs(rotX) <= widthPx / 2 && Math.abs(rotY) <= depthPx / 2) {
         return i;
       }
     }
@@ -397,7 +530,7 @@ export default function FloorPlanDesigner() {
 
   const handleCanvasClick = (e) => {
     if (isDraggingItem || isPanning) return;
-    
+
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
     const x = (e.clientX - rect.left - panOffset.x) / zoom;
@@ -420,12 +553,12 @@ export default function FloorPlanDesigner() {
     }
 
     const itemIndex = getItemAtPosition(x, y);
-    
+
     if (itemIndex !== null) {
       const item = placedItems[itemIndex];
       const dx = x - item.x;
       const dy = y - item.y;
-      
+
       setSelectedItem(itemIndex);
       setIsDraggingItem(true);
       setDragOffset({ x: dx, y: dy });
@@ -436,7 +569,7 @@ export default function FloorPlanDesigner() {
     if (isPanning) {
       setPanOffset({
         x: e.clientX - panStart.x,
-        y: e.clientY - panStart.y
+        y: e.clientY - panStart.y,
       });
       return;
     }
@@ -476,7 +609,7 @@ export default function FloorPlanDesigner() {
       ...draggedItem,
       x,
       y,
-      rotation: 0
+      rotation: 0,
     };
 
     if (draggedItem.image) {
@@ -499,7 +632,7 @@ export default function FloorPlanDesigner() {
       setPlacedItems(newItems);
       setSelectedItem(newItems.length - 1);
     }
-    
+
     setDraggedItem(null);
   };
 
@@ -507,32 +640,32 @@ export default function FloorPlanDesigner() {
     e.preventDefault();
     const delta = e.deltaY > 0 ? 0.9 : 1.1;
     const newZoom = Math.max(0.1, Math.min(5, zoom * delta));
-    
+
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
     const mouseX = e.clientX - rect.left;
     const mouseY = e.clientY - rect.top;
-    
+
     const beforeX = (mouseX - panOffset.x) / zoom;
     const beforeY = (mouseY - panOffset.y) / zoom;
-    
+
     const afterX = (mouseX - panOffset.x) / newZoom;
     const afterY = (mouseY - panOffset.y) / newZoom;
-    
+
     setPanOffset({
       x: panOffset.x + (afterX - beforeX) * newZoom,
-      y: panOffset.y + (afterY - beforeY) * newZoom
+      y: panOffset.y + (afterY - beforeY) * newZoom,
     });
-    
+
     setZoom(newZoom);
   };
 
   const zoomIn = () => {
-    setZoom(prev => Math.min(5, prev * 1.2));
+    setZoom((prev) => Math.min(5, prev * 1.2));
   };
 
   const zoomOut = () => {
-    setZoom(prev => Math.max(0.1, prev / 1.2));
+    setZoom((prev) => Math.max(0.1, prev / 1.2));
   };
 
   const resetView = () => {
@@ -543,7 +676,8 @@ export default function FloorPlanDesigner() {
   const rotateSelected = () => {
     if (selectedItem !== null) {
       const updated = [...placedItems];
-      updated[selectedItem].rotation = (updated[selectedItem].rotation || 0) + 45;
+      updated[selectedItem].rotation =
+        (updated[selectedItem].rotation || 0) + 45;
       setPlacedItems(updated);
     }
   };
@@ -557,57 +691,60 @@ export default function FloorPlanDesigner() {
 
   const addCustomFurniture = () => {
     if (!customForm.name || !customForm.width || !customForm.depth) {
-      alert('Please fill name, width, and depth fields');
+      alert("Please fill name, width, and depth fields");
       return;
     }
 
     const addFurnitureItem = (newFurniture) => {
       const customFurnitureList = furniture.slice(DEFAULT_FURNITURE.length);
       const updatedCustomFurniture = [...customFurnitureList, newFurniture];
-      
+
       setFurniture([...DEFAULT_FURNITURE, ...updatedCustomFurniture]);
-      localStorage.setItem('customFurniture', JSON.stringify(updatedCustomFurniture));
-      setCustomForm({ name: '', width: '', depth: '', image: '', rotation: 0 });
+      localStorage.setItem(
+        "customFurniture",
+        JSON.stringify(updatedCustomFurniture)
+      );
+      setCustomForm({ name: "", width: "", depth: "", image: "", rotation: 0 });
     };
 
     if (customForm.image) {
       const img = new Image();
       img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+
         const size = 200;
         canvas.width = size;
         canvas.height = size;
-        
+
         ctx.save();
-        ctx.translate(size/2, size/2);
-        ctx.rotate(customForm.rotation * Math.PI / 180);
-        
+        ctx.translate(size / 2, size / 2);
+        ctx.rotate((customForm.rotation * Math.PI) / 180);
+
         const scale = Math.min(size / img.width, size / img.height) * 0.9;
         const w = img.width * scale;
         const h = img.height * scale;
-        
-        ctx.drawImage(img, -w/2, -h/2, w, h);
+
+        ctx.drawImage(img, -w / 2, -h / 2, w, h);
         ctx.restore();
-        
+
         const rotatedImage = canvas.toDataURL();
 
         const newFurniture = {
           name: customForm.name,
           width: parseFloat(customForm.width),
           depth: parseFloat(customForm.depth),
-          image: rotatedImage
+          image: rotatedImage,
         };
 
         addFurnitureItem(newFurniture);
       };
       img.onerror = () => {
-        alert('Failed to load image. Adding furniture without image.');
+        alert("Failed to load image. Adding furniture without image.");
         const newFurniture = {
           name: customForm.name,
           width: parseFloat(customForm.width),
-          depth: parseFloat(customForm.depth)
+          depth: parseFloat(customForm.depth),
         };
         addFurnitureItem(newFurniture);
       };
@@ -616,48 +753,53 @@ export default function FloorPlanDesigner() {
       const newFurniture = {
         name: customForm.name,
         width: parseFloat(customForm.width),
-        depth: parseFloat(customForm.depth)
+        depth: parseFloat(customForm.depth),
       };
       addFurnitureItem(newFurniture);
     }
   };
 
   const deleteCustomFurniture = (index) => {
-    if (!confirm('Delete this custom furniture item?')) return;
-    
+    if (!confirm("Delete this custom furniture item?")) return;
+
     const customIndex = index - DEFAULT_FURNITURE.length;
     const customFurnitureList = furniture.slice(DEFAULT_FURNITURE.length);
     customFurnitureList.splice(customIndex, 1);
-    
+
     setFurniture([...DEFAULT_FURNITURE, ...customFurnitureList]);
-    localStorage.setItem('customFurniture', JSON.stringify(customFurnitureList));
+    localStorage.setItem(
+      "customFurniture",
+      JSON.stringify(customFurnitureList)
+    );
   };
 
   const rotateCustomImage = () => {
-    setCustomForm({...customForm, rotation: (customForm.rotation + 45) % 360});
+    setCustomForm({
+      ...customForm,
+      rotation: (customForm.rotation + 45) % 360,
+    });
   };
 
   const getSelectedItemPosition = () => {
     if (selectedItem === null || !canvasRef.current) return null;
-    
+
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
     const item = placedItems[selectedItem];
-    
+
     return {
       x: rect.left + item.x * zoom + panOffset.x,
-      y: rect.top + item.y * zoom + panOffset.y
+      y: rect.top + item.y * zoom + panOffset.y,
     };
   };
 
-  const currentProject = projects.find(p => p.id === currentProjectId);
+  const currentProject = projects.find((p) => p.id === currentProjectId);
 
   const tabs = [
-    { id: 'projects', label: 'Projects', icon: FolderOpen },
-    { id: 'grid', label: 'Grid', icon: Grid3x3 },
-    { id: 'furniture', label: 'Furniture', icon: Settings },
-    { id: 'custom', label: 'Custom', icon: Plus },
-    { id: 'view', label: 'View', icon: Maximize2 },
+    { id: "projects", label: "Projects", icon: FolderOpen },
+    { id: "grid", label: "Grid", icon: Grid3x3 },
+    { id: "furniture", label: "Furniture", icon: Settings },
+    { id: "view", label: "View", icon: Maximize2 },
   ];
 
   const selectedPos = getSelectedItemPosition();
@@ -666,14 +808,18 @@ export default function FloorPlanDesigner() {
     <div className="h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex overflow-hidden">
       <div className="w-full max-w-sm lg:max-w-md xl:max-w-lg bg-white shadow-lg flex flex-col flex-shrink-0">
         <div className="p-4 lg:p-6 border-b flex-shrink-0">
-          <h1 className="text-xl lg:text-2xl font-bold text-slate-800">Floor Plan Designer</h1>
+          <h1 className="text-xl lg:text-2xl font-bold text-slate-800">
+            Floor Plan Designer
+          </h1>
           {currentProject && (
-            <p className="text-sm text-gray-600 mt-1 truncate">{currentProject.name}</p>
+            <p className="text-sm text-gray-600 mt-1 truncate">
+              {currentProject.name}
+            </p>
           )}
         </div>
 
         <div className="flex border-b flex-shrink-0">
-          {tabs.map(tab => {
+          {tabs.map((tab) => {
             const Icon = tab.icon;
             return (
               <button
@@ -681,9 +827,15 @@ export default function FloorPlanDesigner() {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex-1 flex flex-col items-center gap-1 py-2 lg:py-3 text-xs font-medium transition ${
                   activeTab === tab.id
-                    ? 'bg-blue-500 text-white'
-                    : 'text-gray-600 hover:bg-gray-50'
+                    ? "bg-blue-500 text-white"
+                    : "text-gray-600 hover:bg-gray-50"
+                }
+                ${
+                  !currentProjectId && tab.id !== "projects"
+                    ? "text-gray-200 bg-gray-200"
+                    : ""
                 }`}
+                disabled={!currentProjectId && tab.id !== "projects"}
               >
                 <Icon className="w-4 h-4 lg:w-5 lg:h-5" />
                 <span className="hidden sm:inline">{tab.label}</span>
@@ -693,32 +845,103 @@ export default function FloorPlanDesigner() {
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 lg:p-6">
-          {activeTab === 'projects' && (
+          {activeTab === "projects" && (
             <div>
-              <h2 className="text-lg font-semibold mb-4">Projects</h2>
-              
-              <div className="mb-6 border-2 border-dashed border-gray-300 rounded-lg p-4">
-                <h3 className="text-sm font-medium mb-3">Create New Project</h3>
-                <input
-                  type="text"
-                  placeholder="Project name"
-                  value={newProjectName}
-                  onChange={(e) => setNewProjectName(e.target.value)}
-                  className="w-full border rounded-lg px-3 py-2 mb-2"
-                  onKeyPress={(e) => e.key === 'Enter' && createNewProject()}
-                />
-                <button
-                  onClick={createNewProject}
-                  className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg transition font-medium flex items-center justify-center gap-2"
-                >
-                  <PlusCircle className="w-4 h-4" />
-                  Create Project
-                </button>
-              </div>
+              {projectView === "list" && (
+                <>
+                  <h2 className="text-lg font-semibold mb-4">Projects</h2>
+                  {/* Create new project */}
+                  <div className="mb-6 border-2 border-dashed border-gray-300 rounded-lg p-4">
+                    <h3 className="text-sm font-medium mb-3">
+                      Create New Project
+                    </h3>
+                    <input
+                      type="text"
+                      placeholder="Project name"
+                      value={newProjectName}
+                      onChange={(e) => setNewProjectName(e.target.value)}
+                      className="w-full border rounded-lg px-3 py-2 mb-2"
+                      onKeyPress={(e) =>
+                        e.key === "Enter" && createNewProject()
+                      }
+                    />
+                    <button
+                      onClick={createNewProject}
+                      className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg transition font-medium flex items-center justify-center gap-2"
+                    >
+                      <PlusCircle className="w-4 h-4" />
+                      Create Project
+                    </button>
+                  </div>
 
-              {currentProject && (
-                <div className="mb-6 border rounded-lg p-4 bg-blue-50">
-                  <h3 className="text-sm font-medium mb-3">Upload Floor Plan</h3>
+                  {/* Projects list */}
+                  <div className="space-y-2">
+                    {projects.length === 0 && (
+                      <p className="text-sm text-gray-500 text-center py-4">
+                        No projects yet. Create one to get started!
+                      </p>
+                    )}
+                    {projects.map((project) => (
+                      <div
+                        key={project.id}
+                        className={`border-2 rounded-lg p-3 cursor-pointer transition ${
+                          currentProjectId === project.id
+                            ? "border-blue-500 bg-blue-50"
+                            : "border-gray-200 hover:border-blue-300 bg-white"
+                        }`}
+                        onClick={() => {
+                          loadProject(project.id);
+                          setProjectView("actions");
+                        }}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-sm truncate">
+                              {project.name}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              {new Date(
+                                project.lastModified
+                              ).toLocaleDateString()}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+
+              {projectView === "actions" && currentProject && (
+                <div>
+                  <button
+                    className="text-blue-500 mb-4 hover:text-blue-700 hover:cursor-pointer flex flex-row items-center"
+                    onClick={() => {
+                      setProjectView("list");
+                      unloadProject();
+                    }}
+                  >
+                    <ArrowLeft className="w-4 h-4 mr-1" /> Back to Projects
+                  </button>
+                  <h2 className="text-lg font-semibold mb-4">
+                    Project Actions: {currentProject.name}
+                  </h2>
+
+                  {/* Rename */}
+                  <input
+                    type="text"
+                    defaultValue={currentProject.name}
+                    onBlur={(e) => renameProject(e.target.value)}
+                    className="w-full border px-3 py-2 rounded mb-4"
+                  />
+
+                  {/* Upload/change floor plan */}
+                  <button
+                    onClick={() => fileInputRef.current.click()}
+                    className="w-full bg-blue-500 text-white rounded py-2 mb-2 hover:bg-blue-700"
+                  >
+                    {floorPlan ? "Change Floor Plan" : "Upload Floor Plan"}
+                  </button>
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -726,66 +949,49 @@ export default function FloorPlanDesigner() {
                     onChange={handleFileUpload}
                     className="hidden"
                   />
+
+                  {/* Export PNG */}
                   <button
-                    onClick={() => fileInputRef.current.click()}
-                    className="w-full bg-white hover:bg-gray-50 border-2 border-blue-300 text-blue-700 py-2 px-4 rounded-lg transition font-medium flex items-center justify-center gap-2"
+                    onClick={exportPNG}
+                    className="w-full bg-green-500 text-white rounded py-2 mb-2 hover:bg-green-700"
                   >
-                    <Upload className="w-4 h-4" />
-                    {floorPlan ? 'Change Floor Plan' : 'Upload Floor Plan'}
+                    Export Floor Plan as PNG
+                  </button>
+
+                  {/* Delete project */}
+                  <button
+                    onClick={(e) => deleteProject(e, currentProject.id)}
+                    className="w-full bg-red-500 text-white rounded py-2 hover:bg-red-700"
+                  >
+                    Delete Project
                   </button>
                 </div>
               )}
-
-              <div className="space-y-2">
-                {projects.length === 0 && (
-                  <p className="text-sm text-gray-500 text-center py-4">No projects yet. Create one to get started!</p>
-                )}
-                {projects.map(project => (
-                  <div
-                    key={project.id}
-                    className={`border-2 rounded-lg p-3 cursor-pointer transition ${
-                      currentProjectId === project.id
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 hover:border-blue-300 bg-white'
-                    }`}
-                    onClick={() => loadProject(project.id)}
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1 min-w-0">
-                        <div className="font-medium text-sm truncate">{project.name}</div>
-                        <div className="text-xs text-gray-500">
-                          {new Date(project.lastModified).toLocaleDateString()}
-                        </div>
-                      </div>
-                      <button
-                        onClick={(e) => deleteProject(e, project.id)}
-                        className="ml-2 text-red-500 hover:text-red-700 p-1"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
             </div>
           )}
 
-          {activeTab === 'grid' && (
+          {activeTab === "grid" && (
             <div>
               <h2 className="text-lg font-semibold mb-4">Grid Configuration</h2>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Grid Size (pixels)</label>
+                  <label className="block text-sm font-medium mb-2">
+                    Grid Size (pixels)
+                  </label>
                   <input
                     type="number"
                     value={gridSize}
                     onChange={(e) => setGridSize(Number(e.target.value))}
                     className="w-full border rounded-lg px-4 py-2"
                   />
-                  <p className="text-xs text-gray-500 mt-1">Size of each grid square</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Size of each grid square
+                  </p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2">Meters per Square</label>
+                  <label className="block text-sm font-medium mb-2">
+                    Meters per Square
+                  </label>
                   <input
                     type="number"
                     step="0.1"
@@ -793,7 +999,9 @@ export default function FloorPlanDesigner() {
                     onChange={(e) => setMetersPerSquare(Number(e.target.value))}
                     className="w-full border rounded-lg px-4 py-2"
                   />
-                  <p className="text-xs text-gray-500 mt-1">Real-world size of each square</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Real-world size of each square
+                  </p>
                 </div>
                 <div>
                   <label className="flex items-center gap-2 border rounded-lg px-4 py-2 cursor-pointer hover:bg-gray-50">
@@ -803,17 +1011,23 @@ export default function FloorPlanDesigner() {
                       onChange={(e) => setShowGrid(e.target.checked)}
                       className="w-5 h-5"
                     />
-                    <span className="text-sm font-medium">Show Grid Overlay</span>
+                    <span className="text-sm font-medium">
+                      Show Grid Overlay
+                    </span>
                   </label>
                 </div>
               </div>
 
               <div className="border-t pt-6 mt-6">
                 <h3 className="text-base font-semibold mb-3">Grid Alignment</h3>
-                <p className="text-sm text-gray-600 mb-4">Adjust the grid position to align with your floor plan</p>
+                <p className="text-sm text-gray-600 mb-4">
+                  Adjust the grid position to align with your floor plan
+                </p>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium mb-2">Horizontal Offset (X)</label>
+                    <label className="block text-sm font-medium mb-2">
+                      Horizontal Offset (X)
+                    </label>
                     <input
                       type="range"
                       min="0"
@@ -829,7 +1043,9 @@ export default function FloorPlanDesigner() {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">Vertical Offset (Y)</label>
+                    <label className="block text-sm font-medium mb-2">
+                      Vertical Offset (Y)
+                    </label>
                     <input
                       type="range"
                       min="0"
@@ -858,130 +1074,188 @@ export default function FloorPlanDesigner() {
             </div>
           )}
 
-          {activeTab === 'furniture' && (
+          {activeTab === "furniture" && (
             <div>
-              <h2 className="text-lg font-semibold mb-4">Furniture Library</h2>
-              <p className="text-sm text-gray-600 mb-4">Drag and drop furniture onto the floor plan</p>
-              <div className="space-y-2">
-                {furniture.map((item, idx) => (
-                  <div
-                    key={idx}
-                    draggable
-                    onDragStart={() => handleDragStart(item)}
-                    className="border-2 border-gray-200 rounded-lg p-3 cursor-move hover:border-blue-400 hover:shadow-md transition bg-white relative group"
+              {furnitureView == "custom" && (
+                <div>
+                  <button
+                    className="text-blue-500 mb-4 hover:text-blue-700 hover:cursor-pointer flex flex-row items-center"
+                    onClick={() => {
+                      setFurnitureView("list");
+                    }}
                   >
-                    <div className="flex items-center gap-3">
-                      <img 
-                        src={item.image || drawFurniturePreview(item)} 
-                        alt={item.name} 
-                        className="w-16 h-16 object-contain flex-shrink-0" 
+                    <ArrowLeft className="w-4 h-4 mr-1" /> Back to Furniture
+                    Library
+                  </button>
+                  <h2 className="text-lg font-semibold mb-4">
+                    Add Custom Furniture
+                  </h2>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2">
+                        Name
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g., Sectional Sofa"
+                        value={customForm.name}
+                        onChange={(e) =>
+                          setCustomForm({ ...customForm, name: e.target.value })
+                        }
+                        className="w-full border rounded-lg px-4 py-2"
                       />
-                      <div className="flex-1 min-w-0">
-                        <div className="font-medium text-sm truncate">{item.name}</div>
-                        <div className="text-xs text-gray-500">
-                          {item.width}m × {item.depth}m
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">
+                        Width (meters)
+                      </label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        placeholder="e.g., 2.5"
+                        value={customForm.width}
+                        onChange={(e) =>
+                          setCustomForm({
+                            ...customForm,
+                            width: e.target.value,
+                          })
+                        }
+                        className="w-full border rounded-lg px-4 py-2"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">
+                        Depth (meters)
+                      </label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        placeholder="e.g., 1.2"
+                        value={customForm.depth}
+                        onChange={(e) =>
+                          setCustomForm({
+                            ...customForm,
+                            depth: e.target.value,
+                          })
+                        }
+                        className="w-full border rounded-lg px-4 py-2"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">
+                        Image URL (optional)
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="https://..."
+                        value={customForm.image}
+                        onChange={(e) =>
+                          setCustomForm({
+                            ...customForm,
+                            image: e.target.value,
+                          })
+                        }
+                        className="w-full border rounded-lg px-4 py-2"
+                      />
+                    </div>
+
+                    {customForm.image && (
+                      <div className="border rounded-lg p-4 bg-gray-50">
+                        <div className="text-sm font-medium mb-3">Preview</div>
+                        <div className="flex items-center gap-4">
+                          <div className="w-24 h-24 border rounded flex items-center justify-center bg-white">
+                            <img
+                              src={customForm.image}
+                              alt="Preview"
+                              className="max-w-full max-h-full object-contain"
+                              style={{
+                                transform: `rotate(${customForm.rotation}deg)`,
+                              }}
+                              onError={(e) => (e.target.style.display = "none")}
+                            />
+                          </div>
+                          <button
+                            onClick={rotateCustomImage}
+                            className="bg-gray-200 hover:bg-gray-300 p-3 rounded-lg transition flex items-center gap-2"
+                          >
+                            <Rotate3D className="w-5 h-5" />
+                            Rotate 45°
+                          </button>
                         </div>
                       </div>
-                      {idx >= DEFAULT_FURNITURE.length && (
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            deleteCustomFurniture(idx);
-                          }}
-                          className="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-700 p-1 transition"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+                    )}
 
-          {activeTab === 'custom' && (
-            <div>
-              <h2 className="text-lg font-semibold mb-4">Add Custom Furniture</h2>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Name</label>
-                  <input
-                    type="text"
-                    placeholder="e.g., Sectional Sofa"
-                    value={customForm.name}
-                    onChange={(e) => setCustomForm({...customForm, name: e.target.value})}
-                    className="w-full border rounded-lg px-4 py-2"
-                  />
+                    <button
+                      onClick={addCustomFurniture}
+                      className="w-full bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-lg transition font-medium flex flex-row items-center"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add to Furniture Library
+                    </button>
+                  </div>
                 </div>
+              )}
+
+              {furnitureView == "list" && (
                 <div>
-                  <label className="block text-sm font-medium mb-2">Width (meters)</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    placeholder="e.g., 2.5"
-                    value={customForm.width}
-                    onChange={(e) => setCustomForm({...customForm, width: e.target.value})}
-                    className="w-full border rounded-lg px-4 py-2"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Depth (meters)</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    placeholder="e.g., 1.2"
-                    value={customForm.depth}
-                    onChange={(e) => setCustomForm({...customForm, depth: e.target.value})}
-                    className="w-full border rounded-lg px-4 py-2"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Image URL (optional)</label>
-                  <input
-                    type="text"
-                    placeholder="https://..."
-                    value={customForm.image}
-                    onChange={(e) => setCustomForm({...customForm, image: e.target.value})}
-                    className="w-full border rounded-lg px-4 py-2"
-                  />
-                </div>
-                
-                {customForm.image && (
-                  <div className="border rounded-lg p-4 bg-gray-50">
-                    <div className="text-sm font-medium mb-3">Preview</div>
-                    <div className="flex items-center gap-4">
-                      <div className="w-24 h-24 border rounded flex items-center justify-center bg-white">
-                        <img
-                          src={customForm.image}
-                          alt="Preview"
-                          className="max-w-full max-h-full object-contain"
-                          style={{transform: `rotate(${customForm.rotation}deg)`}}
-                          onError={(e) => e.target.style.display = 'none'}
-                        />
-                      </div>
-                      <button
-                        onClick={rotateCustomImage}
-                        className="bg-gray-200 hover:bg-gray-300 p-3 rounded-lg transition flex items-center gap-2"
+                  <h2 className="text-lg font-semibold mb-4">
+                    Furniture Library
+                  </h2>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Drag and drop furniture onto the floor plan
+                  </p>
+                  <div className="space-y-2">
+                    {furniture.map((item, idx) => (
+                      <div
+                        key={idx}
+                        draggable
+                        onDragStart={() => handleDragStart(item)}
+                        className="border-2 border-gray-200 rounded-lg p-3 cursor-move hover:border-blue-400 hover:shadow-md transition bg-white relative group"
                       >
-                        <Rotate3D className="w-5 h-5" />
-                        Rotate 45°
-                      </button>
-                    </div>
+                        <div className="flex items-center gap-3">
+                          <img
+                            src={item.image || drawFurniturePreview(item)}
+                            alt={item.name}
+                            className="w-16 h-16 object-contain flex-shrink-0"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-sm truncate">
+                              {item.name}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              {item.width}m × {item.depth}m
+                            </div>
+                          </div>
+                          {idx >= DEFAULT_FURNITURE.length && (
+                            <button
+                              onClick={(e) => {
+                                e.preventDefault();
+                                deleteCustomFurniture(idx);
+                              }}
+                              className="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-700 p-1 transition"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                )}
-
-                <button
-                  onClick={addCustomFurniture}
-                  className="w-full bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-lg transition font-medium"
-                >
-                  Add to Furniture Library
-                </button>
-              </div>
+                  <button
+                    onClick={() => {
+                      setFurnitureView("custom");
+                    }}
+                    className="w-full bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-lg transition font-medium mt-4 flex flex-row items-center text-center"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add custom furniture
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
-          {activeTab === 'view' && (
+          {activeTab === "view" && (
             <div>
               <h2 className="text-lg font-semibold mb-4">View Controls</h2>
               <div className="space-y-4">
@@ -1016,18 +1290,26 @@ export default function FloorPlanDesigner() {
                 </div>
 
                 <div className="border rounded-lg p-4 bg-blue-50">
-                  <div className="text-sm font-semibold mb-2 text-blue-900">Navigation Tips</div>
+                  <div className="text-sm font-semibold mb-2 text-blue-900">
+                    Navigation Tips
+                  </div>
                   <ul className="text-sm text-gray-700 space-y-2">
                     <li className="flex items-start gap-2">
-                      <span className="font-semibold min-w-fit">Mouse Wheel:</span>
+                      <span className="font-semibold min-w-fit">
+                        Mouse Wheel:
+                      </span>
                       <span>Zoom in/out</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="font-semibold min-w-fit">Space + Drag:</span>
+                      <span className="font-semibold min-w-fit">
+                        Space + Drag:
+                      </span>
                       <span>Pan around the floor plan</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="font-semibold min-w-fit">Click + Drag:</span>
+                      <span className="font-semibold min-w-fit">
+                        Click + Drag:
+                      </span>
                       <span>Move furniture items</span>
                     </li>
                   </ul>
@@ -1056,25 +1338,36 @@ export default function FloorPlanDesigner() {
       </div>
 
       <div className="flex-1 flex flex-col overflow-hidden">
-        <div ref={containerRef} className="flex-1 flex items-center justify-center overflow-hidden relative">
+        <div
+          ref={containerRef}
+          className="flex-1 flex items-center justify-center overflow-hidden relative"
+        >
           {!currentProject ? (
             <div className="text-center">
               <FolderOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-700 mb-2">No Project Selected</h3>
-              <p className="text-gray-500">Create or select a project to get started</p>
+              <h3 className="text-xl font-semibold text-gray-700 mb-2">
+                No Project Selected
+              </h3>
+              <p className="text-gray-500">
+                Create or select a project to get started
+              </p>
             </div>
           ) : (
-            <div 
+            <div
               ref={canvasContainerRef}
               className="relative overflow-hidden"
-              style={{ 
-                cursor: isSpacePressed ? 'grab' : isPanning ? 'grabbing' : 'default'
+              style={{
+                cursor: isSpacePressed
+                  ? "grab"
+                  : isPanning
+                  ? "grabbing"
+                  : "default",
               }}
             >
               <div
                 style={{
                   transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${zoom})`,
-                  transformOrigin: '0 0',
+                  transformOrigin: "0 0",
                 }}
               >
                 <canvas
@@ -1090,7 +1383,7 @@ export default function FloorPlanDesigner() {
                   onDrop={handleCanvasDrop}
                   onDragOver={(e) => e.preventDefault()}
                   onWheel={handleWheel}
-                  style={{ cursor: isDraggingItem ? 'grabbing' : 'pointer' }}
+                  style={{ cursor: isDraggingItem ? "grabbing" : "pointer" }}
                 />
               </div>
             </div>
