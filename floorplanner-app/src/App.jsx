@@ -12,6 +12,13 @@ import {
   ZoomOut,
   Maximize2,
   ArrowLeft,
+  Keyboard,
+  MouseIcon,
+  Undo,
+  Download,
+  Upload,
+  Home,
+  ArrowRight,
 } from "lucide-react";
 
 const DEFAULT_FURNITURE = [
@@ -41,7 +48,7 @@ export default function FloorPlanDesigner() {
   const [currentProjectId, setCurrentProjectId] = useState(null);
   const [floorPlan, setFloorPlan] = useState(null);
   const [floorPlanDimensions, setFloorPlanDimensions] = useState({
-    width: 1200,
+    width: 800,
     height: 800,
   });
   const [gridSize, setGridSize] = useState(50);
@@ -85,7 +92,7 @@ export default function FloorPlanDesigner() {
     setShowGrid(true);
     setGridOffsetX(0);
     setGridOffsetY(0);
-    setFloorPlanDimensions({ width: 1200, height: 800 });
+    setFloorPlanDimensions({ width: 800, height: 800 });
     setSelectedItem(null);
     setFloorPlan(null);
     setZoom(1);
@@ -167,7 +174,6 @@ export default function FloorPlanDesigner() {
     gridOffsetY,
     floorPlanDimensions,
     currentProjectId,
-    saveCurrentProject,
   ]);
 
   useEffect(() => {
@@ -181,7 +187,6 @@ export default function FloorPlanDesigner() {
     floorPlanDimensions,
     gridOffsetX,
     gridOffsetY,
-    drawCanvas,
   ]);
 
   const saveCurrentProject = () => {
@@ -261,7 +266,7 @@ export default function FloorPlanDesigner() {
       showGrid: true,
       gridOffsetX: 0,
       gridOffsetY: 0,
-      floorPlanDimensions: { width: 1200, height: 800 },
+      floorPlanDimensions: { width: 800, height: 800 },
       created: new Date().toISOString(),
       lastModified: new Date().toISOString(),
     };
@@ -277,8 +282,9 @@ export default function FloorPlanDesigner() {
     setShowGrid(true);
     setGridOffsetX(0);
     setGridOffsetY(0);
-    setFloorPlanDimensions({ width: 1200, height: 800 });
+    setFloorPlanDimensions({ width: 800, height: 800 });
     setSelectedItem(null);
+    setProjectView("actions");
   };
 
   const loadProject = (projectId, projectsList = projects) => {
@@ -293,7 +299,7 @@ export default function FloorPlanDesigner() {
     setGridOffsetX(project.gridOffsetX || 0);
     setGridOffsetY(project.gridOffsetY || 0);
     setFloorPlanDimensions(
-      project.floorPlanDimensions || { width: 1200, height: 800 }
+      project.floorPlanDimensions || { width: 800, height: 800 }
     );
     setSelectedItem(null);
 
@@ -333,6 +339,9 @@ export default function FloorPlanDesigner() {
         JSON.stringify(updatedProjects)
       );
     }
+
+    unloadProject();
+    setProjectView("list");
   };
 
   const handleFileUpload = (e) => {
@@ -680,7 +689,7 @@ export default function FloorPlanDesigner() {
     if (selectedItem !== null) {
       const updated = [...placedItems];
       updated[selectedItem].rotation =
-        (updated[selectedItem].rotation || 0) + 45;
+        (updated[selectedItem].rotation || 0) + 22.5;
       setPlacedItems(updated);
     }
   };
@@ -759,6 +768,7 @@ export default function FloorPlanDesigner() {
         depth: parseFloat(customForm.depth),
       };
       addFurnitureItem(newFurniture);
+      setFurnitureView("list");
     }
   };
 
@@ -779,7 +789,7 @@ export default function FloorPlanDesigner() {
   const rotateCustomImage = () => {
     setCustomForm({
       ...customForm,
-      rotation: (customForm.rotation + 45) % 360,
+      rotation: (customForm.rotation + 22.5) % 360,
     });
   };
 
@@ -811,14 +821,10 @@ export default function FloorPlanDesigner() {
     <div className="h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex overflow-hidden">
       <div className="w-full max-w-sm lg:max-w-md xl:max-w-lg bg-white shadow-lg flex flex-col flex-shrink-0">
         <div className="p-4 lg:p-6 border-b flex-shrink-0">
-          <h1 className="text-xl lg:text-2xl font-bold text-slate-800">
+          <h1 className="text-xl lg:text-2xl font-bold text-slate-800 flex flex-row items-center gap-3">
+            <Home></Home>
             Floor Plan Designer
           </h1>
-          {currentProject && (
-            <p className="text-sm text-gray-600 mt-1 truncate">
-              {currentProject.name}
-            </p>
-          )}
         </div>
 
         <div className="flex border-b flex-shrink-0">
@@ -879,15 +885,19 @@ export default function FloorPlanDesigner() {
 
                   {/* Projects list */}
                   <div className="space-y-2">
-                    {projects.length === 0 && (
-                      <p className="text-sm text-gray-500 text-center py-4">
+                    {projects.length === 0 ? (
+                      <h3 className="text-sm text-gray-500 text-center py-4">
                         No projects yet. Create one to get started!
-                      </p>
+                      </h3>
+                    ) : (
+                      <h3 className="text-sm font-medium mb-3">
+                        Open a Project
+                      </h3>
                     )}
                     {projects.map((project) => (
                       <div
                         key={project.id}
-                        className={`border-2 rounded-lg p-3 cursor-pointer transition ${
+                        className={`group border-2 rounded-lg p-3 cursor-pointer transition ${
                           currentProjectId === project.id
                             ? "border-blue-500 bg-blue-50"
                             : "border-gray-200 hover:border-blue-300 bg-white"
@@ -899,8 +909,9 @@ export default function FloorPlanDesigner() {
                       >
                         <div className="flex items-start justify-between">
                           <div className="flex-1 min-w-0">
-                            <div className="font-medium text-sm truncate">
-                              {project.name}
+                            <div className="font-medium text-sm truncate flex flex-row items-center">
+                              <span className="mr-2">{project.name}</span>
+                              <ArrowRight className="w-4 h-4 text-black opacity-0 translate-x-[-8px] transition-all duration-300 group-hover:opacity-100 group-hover:translate-x-0" />
                             </div>
                             <div className="text-xs text-gray-500">
                               {new Date(
@@ -924,50 +935,67 @@ export default function FloorPlanDesigner() {
                       unloadProject();
                     }}
                   >
-                    <ArrowLeft className="w-4 h-4 mr-1" /> Back to Projects
+                    <ArrowLeft className="w-4 h-4 mr-1" /> Back to Project List
                   </button>
                   <h2 className="text-lg font-semibold mb-4">
-                    Project Actions: {currentProject.name}
+                    Current Project: {currentProject.name}
                   </h2>
 
-                  {/* Rename */}
-                  <input
-                    type="text"
-                    defaultValue={currentProject.name}
-                    onBlur={(e) => renameProject(e.target.value)}
-                    className="w-full border px-3 py-2 rounded mb-4"
-                  />
+                  <div>
+                    <h3 className="text-base font-semibold mb-3">
+                      Project Actions
+                    </h3>
 
-                  {/* Upload/change floor plan */}
-                  <button
-                    onClick={() => fileInputRef.current.click()}
-                    className="w-full bg-blue-500 text-white rounded py-2 mb-2 hover:bg-blue-700"
-                  >
-                    {floorPlan ? "Change Floor Plan" : "Upload Floor Plan"}
-                  </button>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileUpload}
-                    className="hidden"
-                  />
+                    {/* Rename */}
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium mb-2">
+                        Rename Project
+                      </label>
+                      <input
+                        type="text"
+                        defaultValue={currentProject.name}
+                        onKeyUp={(e) => renameProject(e.target.value)}
+                        className="w-full border px-3 py-2 rounded"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Changes save automatically.
+                      </p>
+                    </div>
 
-                  {/* Export PNG */}
-                  <button
-                    onClick={exportPNG}
-                    className="w-full bg-green-500 text-white rounded py-2 mb-2 hover:bg-green-700"
-                  >
-                    Export Floor Plan as PNG
-                  </button>
+                    {/* Upload/change floor plan */}
+                    <button
+                      onClick={() => fileInputRef.current.click()}
+                      className="w-full bg-blue-500 text-white rounded py-2 mb-2 hover:bg-blue-700 flex items-center justify-center gap-2"
+                    >
+                      <Upload></Upload>
+                      {floorPlan ? "Change Floor Plan" : "Upload Floor Plan"}
+                    </button>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileUpload}
+                      className="hidden"
+                    />
 
-                  {/* Delete project */}
-                  <button
-                    onClick={(e) => deleteProject(e, currentProject.id)}
-                    className="w-full bg-red-500 text-white rounded py-2 hover:bg-red-700"
-                  >
-                    Delete Project
-                  </button>
+                    {/* Export PNG */}
+                    <button
+                      onClick={exportPNG}
+                      className="w-full bg-green-500 text-white rounded py-2 mb-2 hover:bg-green-700 flex items-center justify-center gap-2"
+                    >
+                      <Download></Download>
+                      Save as PNG
+                    </button>
+
+                    {/* Delete project */}
+                    <button
+                      onClick={(e) => deleteProject(e, currentProject.id)}
+                      className="w-full bg-red-500 text-white rounded py-2 hover:bg-red-700 flex items-center justify-center gap-2"
+                    >
+                      <Trash2></Trash2>
+                      Delete Project
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -1069,9 +1097,9 @@ export default function FloorPlanDesigner() {
                     setGridOffsetX(0);
                     setGridOffsetY(0);
                   }}
-                  className="mt-4 w-full bg-gray-200 hover:bg-gray-300 text-gray-700 py-2 px-4 rounded-lg transition"
+                  className="mt-4 w-full bg-gray-200 hover:bg-gray-300 text-gray-700 py-2 px-4 rounded-lg transition flex items-center justify-center gap-2"
                 >
-                  Reset Alignment
+                  <Undo></Undo> Reset Alignment
                 </button>
               </div>
             </div>
@@ -1182,7 +1210,7 @@ export default function FloorPlanDesigner() {
                             className="bg-gray-200 hover:bg-gray-300 p-3 rounded-lg transition flex items-center gap-2"
                           >
                             <Rotate3D className="w-5 h-5" />
-                            Rotate 45°
+                            Rotate 22°
                           </button>
                         </div>
                       </div>
@@ -1190,7 +1218,7 @@ export default function FloorPlanDesigner() {
 
                     <button
                       onClick={addCustomFurniture}
-                      className="w-full bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-lg transition font-medium flex flex-row items-center"
+                      className="w-full bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-lg transition font-medium flex items-center justify-center gap-2"
                     >
                       <Plus className="w-4 h-4 mr-2" />
                       Add to Furniture Library
@@ -1215,11 +1243,12 @@ export default function FloorPlanDesigner() {
                         onDragStart={() => handleDragStart(item)}
                         className="border-2 border-gray-200 rounded-lg p-3 cursor-move hover:border-blue-400 hover:shadow-md transition bg-white relative group"
                       >
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center">
+                          <span className="text-xl mr-1">⠿</span>
                           <img
                             src={item.image || drawFurniturePreview(item)}
                             alt={item.name}
-                            className="w-16 h-16 object-contain flex-shrink-0"
+                            className="w-16 h-16 object-contain flex-shrink-0 mr-2"
                           />
                           <div className="flex-1 min-w-0">
                             <div className="font-medium text-sm truncate">
@@ -1248,7 +1277,7 @@ export default function FloorPlanDesigner() {
                     onClick={() => {
                       setFurnitureView("custom");
                     }}
-                    className="w-full bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-lg transition font-medium mt-4 flex flex-row items-center text-center"
+                    className="w-full bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-lg transition font-medium mt-4 flex items-center justify-center gap-2"
                   >
                     <Plus className="w-4 h-4 mr-2" />
                     Add custom furniture
@@ -1262,10 +1291,23 @@ export default function FloorPlanDesigner() {
             <div>
               <h2 className="text-lg font-semibold mb-4">View Controls</h2>
               <div className="space-y-4">
-                <div className="border rounded-lg p-4 bg-gray-50">
+                <div>
                   <div className="text-sm font-medium mb-3">Current Zoom</div>
                   <div className="text-3xl font-bold text-blue-600 text-center mb-4">
                     {Math.round(zoom * 100)}%
+                  </div>
+                  <input
+                    type="range"
+                    min="0.1"
+                    max="5"
+                    step="0.1"
+                    value={zoom}
+                    onChange={(e) => setZoom(Number(e.target.value))}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-xs text-gray-500 mt-1 mb-4">
+                    <span>10%</span>
+                    <span>500%</span>
                   </div>
                   <div className="space-y-2">
                     <button
@@ -1292,47 +1334,32 @@ export default function FloorPlanDesigner() {
                   </div>
                 </div>
 
-                <div className="border rounded-lg p-4 bg-blue-50">
-                  <div className="text-sm font-semibold mb-2 text-blue-900">
+                <div className="border-t pt-6 mt-6">
+                  <h3 className="text-base font-semibold mb-3">
                     Navigation Tips
-                  </div>
+                  </h3>
                   <ul className="text-sm text-gray-700 space-y-2">
-                    <li className="flex items-start gap-2">
-                      <span className="font-semibold min-w-fit">
-                        Mouse Wheel:
+                    <li className="flex items-center gap-2">
+                      <span className="font-semibold min-w-fit flex flex-row items-center gap-1">
+                        <MouseIcon></MouseIcon> Mouse Wheel:
                       </span>
                       <span>Zoom in/out</span>
                     </li>
-                    <li className="flex items-start gap-2">
-                      <span className="font-semibold min-w-fit">
-                        Space + Drag:
+                    <li className="flex items-center gap-2">
+                      <span className="font-semibold min-w-fit flex flex-row items-center gap-1">
+                        <Keyboard></Keyboard> Space <Plus></Plus>{" "}
+                        <MouseIcon></MouseIcon> Drag:
                       </span>
                       <span>Pan around the floor plan</span>
                     </li>
-                    <li className="flex items-start gap-2">
-                      <span className="font-semibold min-w-fit">
-                        Click + Drag:
+                    <li className="flex items-center gap-2">
+                      <span className="font-semibold min-w-fit flex flex-row items-center gap-1">
+                        <MouseIcon></MouseIcon> Click <Plus></Plus>{" "}
+                        <MouseIcon></MouseIcon> Drag:
                       </span>
                       <span>Move furniture items</span>
                     </li>
                   </ul>
-                </div>
-
-                <div className="border rounded-lg p-4">
-                  <div className="text-sm font-medium mb-3">Zoom Range</div>
-                  <input
-                    type="range"
-                    min="0.1"
-                    max="5"
-                    step="0.1"
-                    value={zoom}
-                    onChange={(e) => setZoom(Number(e.target.value))}
-                    className="w-full"
-                  />
-                  <div className="flex justify-between text-xs text-gray-500 mt-1">
-                    <span>10%</span>
-                    <span>500%</span>
-                  </div>
                 </div>
               </div>
             </div>

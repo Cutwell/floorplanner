@@ -3,3 +3,17 @@
 button:hover {
     cursor: pointer;
 }
+
+.animate-bounce-sideways {
+  animation: bounce-sideways 1.5s infinite ease-in-out;
+}
+
+/* Define the keyframes for the bounce-sideways animation */
+@keyframes bounce-sideways {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(5px);
+  }
+}
